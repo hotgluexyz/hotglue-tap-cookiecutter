@@ -1,0 +1,73 @@
+# Example contexts for replay-style template tests (keys must match cookiecutter.json).
+# Adjust library_name to match tap_id with hyphens replaced by underscores.
+_defaults: &defaults
+  admin_name: Template Test
+  stream_names: "users,groups"
+  oauth_access_token_via_hg: "no"
+  include_agent_instructions: "None"
+  license: "None"
+  ide: "None"
+
+tests:
+  - <<: *defaults
+    source_name: RESTCustomTemplateTest
+    tap_id: test-tap-rest-custom-type
+    library_name: test_tap_rest_custom_type
+    stream_type: REST
+    auth_method: Custom or N/A
+
+  - <<: *defaults
+    source_name: RESTAPIKeyAuthTemplateTest
+    tap_id: test-tap-rest-apikeyauth-type
+    library_name: test_tap_rest_apikeyauth_type
+    stream_type: REST
+    auth_method: API Key
+
+  - <<: *defaults
+    source_name: RESTBearerAuthTemplateTest
+    tap_id: test-tap-rest-bearerauth-type
+    library_name: test_tap_rest_bearerauth_type
+    stream_type: REST
+    auth_method: Bearer Token
+
+  - <<: *defaults
+    source_name: RESTBasicAuthTemplateTest
+    tap_id: test-tap-rest-basicauth-type
+    library_name: test_tap_rest_basicauth_type
+    stream_type: REST
+    auth_method: Basic Auth
+
+  - <<: *defaults
+    source_name: RESTOAuthTemplateTest
+    tap_id: test-tap-rest-oauth-type
+    library_name: test_tap_rest_oauth_type
+    stream_type: REST
+    auth_method: OAuth2
+
+  - <<: *defaults
+    source_name: RESTJWTTemplateTest
+    tap_id: test-tap-rest-jwt-type
+    library_name: test_tap_rest_jwt_type
+    stream_type: REST
+    auth_method: JWT
+
+  - <<: *defaults
+    source_name: GraphQLJWTTemplateTest
+    tap_id: test-tap-graphql-jwt-type
+    library_name: test_tap_graphql_jwt_type
+    stream_type: GraphQL
+    auth_method: JWT
+
+  - <<: *defaults
+    source_name: RESTCustomOtherTemplateTest
+    tap_id: test-tap-rest-custom-alt-type
+    library_name: test_tap_rest_custom_alt_type
+    stream_type: REST
+    auth_method: Custom or N/A
+
+  - <<: *defaults
+    source_name: RESTCustomVariantTemplateTest
+    tap_id: test-tap-rest-custom-type-variant
+    library_name: test_tap_rest_custom_type_variant
+    stream_type: REST
+    auth_method: Custom or N/A

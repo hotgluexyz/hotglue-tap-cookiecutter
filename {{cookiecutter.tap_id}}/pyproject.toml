@@ -1,0 +1,145 @@
+[build-system]
+requires = [
+    "hatchling>=1,<2",
+    "hatch-vcs>=0.5",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "{{cookiecutter.tap_id}}"
+dynamic = ["version"]
+description = "Singer tap for {{cookiecutter.source_name}}, built with Hotglue's hotglue_singer_sdk."
+readme = "README.md"
+authors = [{ name = "{{ cookiecutter.admin_name }}"}]
+keywords = [
+    "ELT",
+    "{{cookiecutter.source_name}}",
+]
+classifiers = [
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+{%- if cookiecutter.license != "None" %}
+license = "{{cookiecutter.license}}"
+{%- endif %}
+license-files = [ "LICENSE" ]
+requires-python = ">=3.10"
+dependencies = [
+    "hotglue-singer-sdk>=1.0.26",
+    {%- if cookiecutter.auth_method == "JWT" %}
+    "PyJWT>=2.4",
+    {%- endif %}
+    {%- if cookiecutter.stream_type in ["REST", "GraphQL"] %}
+    "requests~=2.33.0",
+    {%- endif %}
+    "typing-extensions>=4.5.0; python_version < '3.13'",
+]
+
+[project.optional-dependencies]
+s3 = [
+    "s3fs>=2026.1.0",
+]
+
+[project.scripts]
+# CLI declaration
+{{cookiecutter.tap_id}} = '{{cookiecutter.library_name}}.tap:Tap{{cookiecutter.source_name}}.cli'
+
+[dependency-groups]
+dev = [
+    { include-group = "test" },
+]
+test = [
+    "pytest>=9",
+    "hotglue-singer-sdk",
+]
+typing = [
+    "mypy>=1.19.1",
+    "ty>=0.0.18",
+    "types-requests",
+]
+
+[tool.hatch.version]
+fallback-version = "0.1.0.dev0"
+source = "vcs"
+
+[tool.mypy]
+enable_error_code = [
+    "ignore-without-code",
+    "redundant-expr",
+    "truthy-bool",
+]
+warn_redundant_casts = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[tool.ty.rules]
+unused-type-ignore-comment = "ignore"
+
+[tool.pytest]
+addopts = [
+    "-ra",
+]
+filterwarnings = [
+    "error",
+    "once:No records were available to test:UserWarning",
+    "once:Fields in transformed catalog but not in records:UserWarning",
+]
+log_level = "INFO"
+minversion = "9"
+strict = true
+testpaths = [
+    "tests",
+]
+
+[tool.ruff]
+line-length = 100
+required-version = ">=0.15"
+
+[tool.ruff.lint]
+future-annotations = true
+ignore = [
+    "COM812",  # missing-trailing-comma
+]
+select = ["ALL"]
+
+[tool.ruff.lint.flake8-annotations]
+allow-star-arg-any = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+# This configuration can be used to customize tox environments
+[tool.tox]
+requires = [
+    "tox>=4.43",
+    "tox-uv",
+]
+env_list = [
+    "typing",
+    { product = [
+        { prefix = "3.", start = 10 },
+    ] },
+]
+
+[tool.tox.env_run_base]
+description = "run tests on Python {env_name}"
+runner = "uv-venv-lock-runner"
+pass_env = [
+    "{{cookiecutter.tap_id.replace('-', '_').upper()}}_*",
+]
+dependency_groups = [ "test" ]
+commands = [ [ "pytest", { replace = "posargs", default = [ "tests" ], extend = true } ] ]
+
+[tool.tox.env.typing]
+description = "type checks"
+dependency_groups = [ "test", "typing" ]
+commands = [
+    [ "mypy", { replace = "posargs", default = [ "{{cookiecutter.library_name}}", "tests" ], extend = true } ],
+    [ "ty", "check", { replace = "posargs", default = [ "{{cookiecutter.library_name}}", "tests" ], extend = true } ],
+]

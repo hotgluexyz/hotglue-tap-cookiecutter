@@ -1,0 +1,31 @@
+{
+  "source_name": "MySourceName",
+  "admin_name": "FirstName LastName",
+  "tap_id": "tap-{{ cookiecutter.source_name.lower() }}",
+  "library_name": "{{ cookiecutter.tap_id.replace('-', '_') }}",
+  "stream_type": ["REST", "GraphQL", "Other"],
+  "stream_names": "users,groups",
+  "auth_method": [
+    "API Key",
+    "Bearer Token",
+    "Basic Auth",
+    "OAuth2",
+    "JWT",
+    "Custom or N/A"
+  ],
+  "oauth_access_token_via_hg": ["no", "yes"],
+  "include_agent_instructions": ["AGENTS.md", "CLAUDE.md", "None"],
+  "license": ["MIT", "Apache-2.0", "None"],
+  "__prompts__": {
+    "source_name": "The name of the source, in CamelCase (e.g., 'MySource'). Use letters and numbers only, no hyphens, spaces, or special characters.",
+    "admin_name": "Provide your [bold yellow]full name[/]",
+    "tap_id": "The ID of the tap, in kebab-case (e.g., 'tap-mysource')",
+    "library_name": "The name of the library, in snake_case (e.g., 'tap_mysource'). This is how the library will be imported in Python.",
+    "stream_type": "The type of stream the source provides",
+    "stream_names": "Comma-separated stream labels, e.g. [dim]users,User Groups,order-lines[/]. Each is normalized to [bold]snake_case[/] for Singer [code]name[/] and REST [code]path[/]; class names are PascalCase + [code]Stream[/]. Scaffold uses [bold]id[/] / [bold]modified_at[/] — fix via TODOs in [code]streams.py[/].",
+    "auth_method": "The [bold red]authentication[/] method used by the source, for REST and GraphQL sources",
+    "oauth_access_token_via_hg": "Get OAuth2 access token via Hotglue (hg)? [dim](Only applies when auth is OAuth2; choose no for all other auth types.)[/]",
+    "include_agent_instructions": "Include an agent instructions file? AGENTS.md is the cross-tool standard; CLAUDE.md is specific to Claude Code.",
+    "license": "The license for the project"
+  }
+}
