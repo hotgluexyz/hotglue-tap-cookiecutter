@@ -5,7 +5,7 @@ from __future__ import annotations
 from hotglue_singer_sdk import Tap, Stream
 from hotglue_singer_sdk import typing as th  # JSON schema typing helpers
 
-{%- if cookiecutter.auth_method == "OAuth2" and cookiecutter.oauth_access_token_via_hg == "yes" %}
+{%- if cookiecutter.auth_method == "OAuth2" %}
 from hotglue_singer_sdk.authenticators import OAuthAuthenticator
 from {{ cookiecutter.library_name }}.auth import {{ cookiecutter.source_name }}Authenticator
 {%- endif %}
@@ -104,8 +104,7 @@ class Tap{{ cookiecutter.source_name }}(Tap):
     def discover_streams(self) -> list[Stream]:
         """Return a list of discovered streams."""
         return [stream_class(tap=self) for stream_class in STREAM_TYPES]
-
-    {%- if cookiecutter.auth_method == "OAuth2" and cookiecutter.oauth_access_token_via_hg == "yes" %}
+{% if cookiecutter.auth_method == "OAuth2" %}
     def access_token_support(self) -> tuple[type[OAuthAuthenticator], str]:
         """Return the access token support for the {{ cookiecutter.source_name }} API.
 
@@ -113,8 +112,7 @@ class Tap{{ cookiecutter.source_name }}(Tap):
             A tuple with the access token support class and the auth endpoint.
         """
         return {{ cookiecutter.source_name }}Authenticator, "https://api.mysample.com/oauth/token"
-    {%- endif %}
-
+{% endif %}
 
 if __name__ == "__main__":
     Tap{{ cookiecutter.source_name }}.cli()

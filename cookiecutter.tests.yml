@@ -3,7 +3,6 @@
 _defaults: &defaults
   admin_name: Template Test
   stream_names: "users,groups"
-  oauth_access_token_via_hg: "no"
   include_agent_instructions: "None"
   license: "None"
   ide: "None"

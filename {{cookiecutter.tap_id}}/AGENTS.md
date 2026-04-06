@@ -21,10 +21,8 @@ This tap follows the Singer specification and uses the Hotglue Singer SDK (hotgl
 1. **Tap Class** (`{{ cookiecutter.library_name }}/tap.py`): Main entry point, defines streams and configuration
 1. **Client** (`{{ cookiecutter.library_name }}/client.py`): HTTP client, stream base class, and (where applicable) how auth is attached to requests
 1. **Streams** (`{{ cookiecutter.library_name }}/streams.py`): Stream classes, schemas (`th.PropertiesList`), and—depending on stream type—`path`, `query`, or custom extraction hooks
-   {%- if cookiecutter.auth_method == "OAuth2" and cookiecutter.oauth_access_token_via_hg == "yes" %}
+   {%- if cookiecutter.auth_method == "OAuth2" %}
 1. **Authentication** (`{{ cookiecutter.library_name }}/auth.py`): `{{ cookiecutter.source_name }}Authenticator` subclasses the SDK’s `OAuthAuthenticator` (e.g. `oauth_request_body` for the token endpoint). `tap.py` exposes **`access_token_support()`** so Hotglue can coordinate tokens; `client.py` builds the authenticator via that hook.
-   {%- elif cookiecutter.auth_method == "OAuth2" %}
-1. **Authentication** (`{{ cookiecutter.library_name }}/auth.py`): OAuth2 token exchange via `{{ cookiecutter.source_name }}Authenticator`; **`client.py`** sets the token URL and instantiates the authenticator (no Hotglue `access_token_support()` in this variant).
    {%- elif cookiecutter.auth_method == "JWT" %}
 1. **Authentication** (`{{ cookiecutter.library_name }}/auth.py`): JWT via `{{ cookiecutter.source_name }}Authenticator` (SDK `OAuthJWTAuthenticator`); used from **`client.py`**.
    {%- elif cookiecutter.auth_method == "Custom or N/A" %}
@@ -128,15 +126,10 @@ The agent should align **`name`**, **`path`** (or **`query`** for GraphQL), **`s
 - Username/password in config
 - Automatically encoded to base64
   {% elif cookiecutter.auth_method == 'OAuth2' -%}
-    {%- if cookiecutter.oauth_access_token_via_hg == 'yes' %}
 - **`tap.py`**: Implement **`access_token_support()`** with your authenticator class and vendor token URL (template includes a placeholder URL—replace with the real endpoint).
 - **`auth.py`**: `{{ cookiecutter.source_name }}Authenticator` extends `OAuthAuthenticator`; implement **`oauth_request_body`** for the vendor’s token request (grant type, scope, etc.).
 - **`client.py`**: OAuth authenticator is created via **`self._tap.access_token_support(self._tap)`**—keep that pattern when adjusting the client.
 - **Config** (see `tap.py` / `README.md`): typically `client_id`, `client_secret`, `refresh_token` as applicable; align with Hotglue connector fields when deployed there.
-    {%- else %}
-- **`auth.py`**: `{{ cookiecutter.source_name }}Authenticator` handles token exchange; set the real **`auth_endpoint`** in **`client.py`** inside the `authenticator` property (replace the `TODO` URL).
-- **Config**: `client_id`, `client_secret`, `refresh_token` per `config_jsonschema`; extend the schema if the vendor needs extra fields.
-    {%- endif %}
   {% elif cookiecutter.auth_method == 'JWT' -%}
 - JWT via `{{ cookiecutter.source_name }}Authenticator` in **`auth.py`** (`OAuthJWTAuthenticator` subclass)
 - Wired from **`client.py`** `authenticator`; extend config in **`tap.py`** if the vendor needs extra claims or secrets

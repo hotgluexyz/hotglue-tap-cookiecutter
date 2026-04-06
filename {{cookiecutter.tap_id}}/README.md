@@ -11,22 +11,18 @@ A [Singer](https://www.singer.io/) tap that extracts data from **{{ cookiecutter
 - **Custom** stream base (`Stream`); implement record extraction in `client.py` / `streams.py`.
 {%- endif -%}
 {% if cookiecutter.auth_method == "OAuth2" %}
-{%- if cookiecutter.oauth_access_token_via_hg == "yes" %}
 - **OAuth2** with access token support via Hotglue (`access_token_support` on the tap).
-{%- else %}
-- **OAuth2** via custom authenticator in `auth.py`.
-{%- endif %}
-{%- elif cookiecutter.auth_method == "JWT" %}
+{% elif cookiecutter.auth_method == "JWT" %}
 - **JWT** authentication (`auth.py`).
-{%- elif cookiecutter.auth_method == "Basic Auth" %}
+{% elif cookiecutter.auth_method == "Basic Auth" %}
 - **Basic** authentication (username / password).
-{%- elif cookiecutter.auth_method == "Bearer Token" %}
+{% elif cookiecutter.auth_method == "Bearer Token" %}
 - **Bearer** token authentication.
-{%- elif cookiecutter.auth_method == "API Key" %}
+{% elif cookiecutter.auth_method == "API Key" %}
 - **API key** authentication.
-{%- else %}
+{% else %}
 - **Custom / N/A** authentication — finish wiring in `client.py` as needed.
-{%- endif %}
+{% endif %}
 - Configurable **`api_url`**, **`project_ids`**, and optional **`start_date`**.
 - Incremental sync is scaffolded with placeholder **`id`** (primary key) and **`modified_at`** (replication key); replace with real fields per stream in `streams.py`.
 

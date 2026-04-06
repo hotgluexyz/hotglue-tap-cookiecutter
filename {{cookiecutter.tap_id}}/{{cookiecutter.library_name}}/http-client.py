@@ -29,18 +29,9 @@ from hotglue_singer_sdk.streams import {{ cookiecutter.stream_type }}Stream
 from hotglue_singer_sdk.helpers.jsonpath import extract_jsonpath
 from hotglue_singer_sdk.streams import {{ cookiecutter.stream_type }}Stream
 
-
-{% elif cookiecutter.auth_method == "OAuth2" and cookiecutter.oauth_access_token_via_hg == "yes" -%}
-from hotglue_singer_sdk.helpers.jsonpath import extract_jsonpath
-from hotglue_singer_sdk.streams import {{ cookiecutter.stream_type }}Stream
-
-
 {% elif cookiecutter.auth_method in ("OAuth2", "JWT") -%}
 from hotglue_singer_sdk.helpers.jsonpath import extract_jsonpath
 from hotglue_singer_sdk.streams import {{ cookiecutter.stream_type }}Stream
-
-from {{ cookiecutter.library_name }}.auth import {{ cookiecutter.source_name }}Authenticator
-
 {% endif -%}
 
 
@@ -77,16 +68,8 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
         Returns:
             An authenticator instance.
         """
-        {%- if cookiecutter.oauth_access_token_via_hg == "yes" %}
         authenticator_cls, auth_endpoint = self._tap.access_token_support(self._tap)
         return authenticator_cls(self, self.config, auth_endpoint=auth_endpoint)
-        {%- else %}
-        return {{ cookiecutter.source_name }}Authenticator(
-            stream=self,
-            config=self.config,
-            auth_endpoint="TODO: OAuth Endpoint URL"
-        )
-        {%- endif %}
 
 {%- elif cookiecutter.auth_method == "JWT" %}
 

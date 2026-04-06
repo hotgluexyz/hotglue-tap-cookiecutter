@@ -9,7 +9,8 @@ exclude = [
     "build",
     "dist",
     ".secrets",
-    ".vscode"
+    ".vscode",
+    ".tox"
 ]
 
 [lint]
