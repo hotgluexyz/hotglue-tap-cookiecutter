@@ -8,7 +8,7 @@ from typing import Any
 {#- Build the list of stream class names once, sorted alphabetically (isort-friendly). -#}
 {%- set classes = namespace(items=[]) -%}
 {%- for raw in cookiecutter.stream_names.split(",") -%}
-{%- set snake = raw | trim | lower | replace(" ", "_") | replace("-", "_") | replace("__", "_") | replace("__", "_") -%}
+{%- set snake = raw | trim | lower | replace(" ", "_") | replace("-", "_") | replace("__", "_") | replace("__", "_") | replace("__", "_") -%}
 {%- if snake -%}
 {%- set ns = namespace(parts="") -%}
 {%- for part in snake.split("_") -%}
