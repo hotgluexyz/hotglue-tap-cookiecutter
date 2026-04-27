@@ -19,15 +19,15 @@ This tap follows the Singer specification and uses the Hotglue Singer SDK (hotgl
 ### Key Components
 
 1. **Tap Class** (`{{ cookiecutter.library_name }}/tap.py`): Main entry point, defines streams and configuration
-1. **Client** (`{{ cookiecutter.library_name }}/client.py`): HTTP client, stream base class, and (where applicable) how auth is attached to requests
-1. **Streams** (`{{ cookiecutter.library_name }}/streams.py`): Stream classes, schemas (`th.PropertiesList`), and—depending on stream type—`path`, `query`, or custom extraction hooks
-   {%- if cookiecutter.auth_method == "OAuth2" %}
-1. **Authentication** (`{{ cookiecutter.library_name }}/auth.py`): `{{ cookiecutter.source_name }}Authenticator` subclasses the SDK’s `OAuthAuthenticator` (e.g. `oauth_request_body` for the token endpoint). `tap.py` exposes **`access_token_support()`** so Hotglue can coordinate tokens; `client.py` builds the authenticator via that hook.
-   {%- elif cookiecutter.auth_method == "JWT" %}
-1. **Authentication** (`{{ cookiecutter.library_name }}/auth.py`): JWT via `{{ cookiecutter.source_name }}Authenticator` (SDK `OAuthJWTAuthenticator`); used from **`client.py`**.
-   {%- elif cookiecutter.auth_method == "Custom or N/A" %}
-1. **Authentication** (`{{ cookiecutter.library_name }}/auth.py`): Stub or custom logic—finish wiring in **`client.py`** / config as needed.
-   {%- endif %}
+2. **Client** (`{{ cookiecutter.library_name }}/client.py`): HTTP client, stream base class, and (where applicable) how auth is attached to requests
+3. **Streams** (`{{ cookiecutter.library_name }}/streams.py`): Stream classes, schemas (`th.PropertiesList`), and—depending on stream type—`path`, `query`, or custom extraction hooks
+{%- if cookiecutter.auth_method == "OAuth2" %}
+4. **Authentication** (`{{ cookiecutter.library_name }}/auth.py`): `{{ cookiecutter.source_name }}Authenticator` subclasses the SDK’s `OAuthAuthenticator` (e.g. `oauth_request_body` for the token endpoint). `tap.py` exposes **`access_token_support()`** so Hotglue can coordinate tokens; `client.py` builds the authenticator via that hook.
+{%- elif cookiecutter.auth_method == "JWT" %}
+4. **Authentication** (`{{ cookiecutter.library_name }}/auth.py`): JWT via `{{ cookiecutter.source_name }}Authenticator` (SDK `OAuthJWTAuthenticator`); used from **`client.py`**.
+{%- elif cookiecutter.auth_method == "Custom or N/A" %}
+4. **Authentication** (`{{ cookiecutter.library_name }}/auth.py`): Stub or custom logic—finish wiring in **`client.py`** / config as needed.
+{%- endif %}
 
 ## Development Guidelines for AI Agents
 
@@ -43,29 +43,29 @@ Before making changes, ensure you understand these Singer concepts:
 
 ### Stream type notes (this template)
 
-{% if cookiecutter.stream_type == "REST" %}
+{% if cookiecutter.stream_type == "REST" -%}
 - **REST**: Each stream typically sets **`path`** (under `url_base`), **`records_jsonpath`**, and pagination via **`get_next_page_token()`** / URL params in **`client.py`** or overrides on the stream class—match your vendor’s API.
-{% elif cookiecutter.stream_type == "GraphQL" %}
+{%- elif cookiecutter.stream_type == "GraphQL" -%}
 - **GraphQL**: Streams define a **`query`** string (selection set / operation) in `streams.py`. Pagination and record shaping depend on the API (e.g. `pageInfo` cursors in the JSON body). Adjust **`records_jsonpath`** and **`get_next_page_token()`** (or GraphQL-specific overrides) on the base stream in **`client.py`** as needed; REST-oriented snippets are still useful when the transport is HTTP JSON.
-{% else %}
+{%- else -%}
 - **Other / custom**: The scaffold uses a generic **`{{ cookiecutter.stream_type }}Stream`** base. You may need to override sync/request/parsing methods per the Hotglue Singer SDK—do not assume URL `path` + query-param pagination without checking the vendor.
-{% endif %}
+{%- endif %}
 
 ### Common Tasks
 
 #### Adding a New Stream
 
 1. Add a stream class in `{{ cookiecutter.library_name }}/streams.py` (follow naming: PascalCase + `Stream`, Singer **`name`** in snake_case—consistent with existing streams).
-1. Set **`primary_keys`** and **`replication_key`** (use `None` if not incremental).
-   {%- if cookiecutter.stream_type == "GraphQL" %}
-1. Set **`name`** and a **`query`** that matches your schema and API; confirm how the client sends the GraphQL payload.
-   {%- elif cookiecutter.stream_type == "REST" %}
-1. Set **`name`** and **`path`** (relative to `url_base` in `client.py`).
-   {%- else %}
-1. Set **`name`** and wire how data is read (path, payload, or overrides) to match your **`{{ cookiecutter.stream_type }}`** integration.
-   {%- endif %}
-1. Define **`schema`** with `th.PropertiesList` / `th.Property` (same style as the generated streams).
-1. Add the class to **`STREAM_TYPES`** in `tap.py` and to the **`from {{ cookiecutter.library_name }}.streams import (...)`** block (Cookiecutter pre-fills both from **`stream_names`**).
+2. Set **`primary_keys`** and **`replication_key`** (use `None` if not incremental).
+{%- if cookiecutter.stream_type == "GraphQL" %}
+3. Set **`name`** and a **`query`** that matches your schema and API; confirm how the client sends the GraphQL payload.
+{%- elif cookiecutter.stream_type == "REST" %}
+3. Set **`name`** and **`path`** (relative to `url_base` in `client.py`).
+{%- else %}
+3. Set **`name`** and wire how data is read (path, payload, or overrides) to match your **`{{ cookiecutter.stream_type }}`** integration.
+{%- endif %}
+4. Define **`schema`** with `th.PropertiesList` / `th.Property` (same style as the generated streams).
+5. Add the class to **`STREAM_TYPES`** in `tap.py` and to the **`from {{ cookiecutter.library_name }}.streams import (...)`** block (Cookiecutter pre-fills both from **`stream_names`**).
 
 Example (aligned with `streams.py`):
 
@@ -104,48 +104,47 @@ class MyNewStream({{ cookiecutter.source_name }}Stream):
 To get a useful update to **`streams.py`**, **`client.py`** (pagination / JSON paths), and—if it is a **new** stream—**`tap.py`** (`STREAM_TYPES` + import), send a message shaped roughly like this:
 
 1. **Goal**: e.g. “Add stream `payouts`” or “Fix schema + pagination on `FinancialTransactionsStream`.”
-1. **Request**: Paste the **`curl`** (or HTTP method + path + query) you use. **Redact** tokens, keys, and cookies; placeholders like `REDACTED` are fine.
-1. **Response**: Paste a **realistic JSON** body (trim huge arrays to a few items). If the list is nested (e.g. `data.items`), say where records live.
-1. **Pagination**: State how the next page is indicated (cursor in JSON, `Link` header, `page` / `offset`, or none).
-1. **Incremental sync**: Which field should be the **replication key** (if any), and which field(s) are **primary keys**—or say “full table” if not incremental.
-1. **Optional**: Auth quirks (special headers, required query params) if they affect this endpoint.
+2. **Request**: Paste the **`curl`** (or HTTP method + path + query) you use. **Redact** tokens, keys, and cookies; placeholders like `REDACTED` are fine.
+3. **Response**: Paste a **realistic JSON** body (trim huge arrays to a few items). If the list is nested (e.g. `data.items`), say where records live.
+4. **Pagination**: State how the next page is indicated (cursor in JSON, `Link` header, `page` / `offset`, or none).
+5. **Incremental sync**: Which field should be the **replication key** (if any), and which field(s) are **primary keys**—or say “full table” if not incremental.
+6. **Optional**: Auth quirks (special headers, required query params) if they affect this endpoint.
 
 The agent should align **`name`**, **`path`** (or **`query`** for GraphQL), **`schema`**, **`records_jsonpath`** / **`get_next_page_token()`** in **`{{ cookiecutter.library_name }}/client.py`** when needed, and **`STREAM_TYPES`** + imports in **`tap.py`** for new streams. See **Handling Pagination** and **Adding a New Stream** above.
 
 #### Modifying Authentication
 
 {% if cookiecutter.auth_method == 'API Key' -%}
-
 - Update `authenticator` in client class
 - API key should be passed via headers or query parameters
 - Configuration defined in `tap.py` config schema
-  {% elif cookiecutter.auth_method == 'Bearer Token' -%}
+{%- elif cookiecutter.auth_method == 'Bearer Token' -%}
 - Token read from the **`api_key`** config property (see `tap.py` / `README.md`; rename in schema and client if your API uses a different setting name)
 - Passed via **`BearerTokenAuthenticator`** in **`client.py`** (`Authorization: Bearer …`)
-  {% elif cookiecutter.auth_method == 'Basic Auth' -%}
+{%- elif cookiecutter.auth_method == 'Basic Auth' -%}
 - Username/password in config
 - Automatically encoded to base64
-  {% elif cookiecutter.auth_method == 'OAuth2' -%}
+{%- elif cookiecutter.auth_method == 'OAuth2' -%}
 - **`tap.py`**: Implement **`access_token_support()`** with your authenticator class and vendor token URL (template includes a placeholder URL—replace with the real endpoint).
 - **`auth.py`**: `{{ cookiecutter.source_name }}Authenticator` extends `OAuthAuthenticator`; implement **`oauth_request_body`** for the vendor’s token request (grant type, scope, etc.).
 - **`client.py`**: OAuth authenticator is created via **`self._tap.access_token_support(self._tap)`**—keep that pattern when adjusting the client.
 - **Config** (see `tap.py` / `README.md`): typically `client_id`, `client_secret`, `refresh_token` as applicable; align with Hotglue connector fields when deployed there.
-  {% elif cookiecutter.auth_method == 'JWT' -%}
+{%- elif cookiecutter.auth_method == 'JWT' -%}
 - JWT via `{{ cookiecutter.source_name }}Authenticator` in **`auth.py`** (`OAuthJWTAuthenticator` subclass)
 - Wired from **`client.py`** `authenticator`; extend config in **`tap.py`** if the vendor needs extra claims or secrets
-  {% elif cookiecutter.auth_method == 'Custom or N/A' -%}
+{%- elif cookiecutter.auth_method == 'Custom or N/A' -%}
 - Finish authentication in **`client.py`** (and **`tap.py`** `config_jsonschema`); use **`auth.py`** only if you add a dedicated authenticator class
-  {% endif -%}
+{%- endif %}
 
 #### Handling Pagination
 
 {% if cookiecutter.stream_type == "Other" -%}
 This project was generated with stream type **Other**: pagination is not assumed to be REST query-param style. Inspect **`{{ cookiecutter.library_name }}/client.py`** and the SDK’s `{{ cookiecutter.stream_type }}Stream` behavior, then implement paging (or full fetch) in the appropriate hooks. If you end up with HTTP JSON pages, the **`get_next_page_token()`** patterns below still apply once your base stream uses them.
-{% else -%}
+{%- else -%}
 The scaffold pages over HTTP using **`get_next_page_token()`** on the stream class (see **`{{ cookiecutter.library_name }}/client.py`** for the default implementation using JSONPath / headers). Return the value the SDK should pass on the next request (page number, cursor, URL, etc.); return **`None`** when there is no next page. **GraphQL** APIs often expose cursors inside the JSON body—parse those here and thread the token into the request builder your client uses.
 
 The method signature matches the base stream (roughly: `response`, `previous_token`). Adapt the body to your API.
-{% endif -%}
+{%- endif %}
 
 **Next token in the JSON body** (cursor, page number, etc.):
 
@@ -247,9 +246,8 @@ pytest tests/test_core.py -k test_name
 Configuration properties are defined in the tap class:
 
 - Required vs optional properties
-- Secret properties (passwords, tokens)
-- Mark sensitive data with `secret=True` parameter
 - Defaults specified in config schema
+- Sensitive credentials (tokens, passwords) — flag them as `sensitive: true` in `meltano.yml` and document them as sensitive in `README.md`.
 
 Example configuration schema:
 
@@ -258,7 +256,7 @@ from hotglue_singer_sdk import typing as th
 
 config_jsonschema = th.PropertiesList(
     th.Property("api_url", th.StringType, required=True),
-    th.Property("api_key", th.StringType, required=True, secret=True),
+    th.Property("api_key", th.StringType, required=True),
     th.Property("start_date", th.DateTimeType),
 ).to_dict()
 ```
@@ -279,14 +277,14 @@ Authoritative settings live in **`config_jsonschema`** on the tap class in `{{ c
 - Adding new configuration properties to the tap
 - Removing or renaming existing properties
 - Changing property types, defaults, or descriptions
-- Marking properties as required or secret
+- Marking properties as required, or flagging sensitive credentials in `meltano.yml`
 
 **How to sync (typical flow for this template):**
 
 1. Update `config_jsonschema` in `{{ cookiecutter.library_name }}/tap.py`.
-1. Update **`README.md`**: the configuration table, the example `config.json`, and any prose that names settings.
-1. Update **`.env.example`** so variable names stay aligned with `{{ cookiecutter.tap_id }} --about` / `--config=ENV` (keys are derived from config property names).
-1. If the tap runs on **Hotglue**, align connector or job configuration in the Hotglue product with the same keys and types ([Hotglue documentation](https://docs.hotglue.com)).
+2. Update **`README.md`**: the configuration table, the example `config.json`, and any prose that names settings.
+3. Update **`.env.example`** so variable names stay aligned with `{{ cookiecutter.tap_id }} --about` / `--config=ENV` (keys are derived from config property names).
+4. If the tap runs on **Hotglue**, align connector or job configuration in the Hotglue product with the same keys and types ([Hotglue documentation](https://docs.hotglue.com)).
 
 Example — adding a new `batch_size` setting:
 
@@ -294,7 +292,7 @@ Example — adding a new `batch_size` setting:
 # {{ cookiecutter.library_name }}/tap.py
 config_jsonschema = th.PropertiesList(
     th.Property("api_url", th.StringType, required=True),
-    th.Property("api_key", th.StringType, required=True, secret=True),
+    th.Property("api_key", th.StringType, required=True),
     th.Property("batch_size", th.IntegerType, default=100),  # New setting
 ).to_dict()
 ```
@@ -328,7 +326,7 @@ Example snippet for `README.md`’s **Example `config.json`** section:
 | `ArrayType` | array |
 | `ObjectType` | object |
 
-Use `secret=True` in the schema for credentials; document them as sensitive in `README.md` and never commit real values.
+For credentials, set `sensitive: true` on the matching setting in `meltano.yml`, document them as sensitive in `README.md`, and never commit real values.
 
 **Best practices:**
 
@@ -340,11 +338,11 @@ Use `secret=True` in the schema for credentials; document them as sensitive in `
 ### Common Pitfalls
 
 1. **Rate Limiting**: Implement backoff using `RESTStream` built-in retry logic
-1. **Large Responses**: Use pagination, don't load entire dataset into memory
-1. **Schema Mismatches**: Validate data matches schema, handle null values
-1. **State Management**: Don't modify state directly, use SDK methods
-1. **Timezone Handling**: Use UTC, parse ISO 8601 datetime strings
-1. **Error Handling**: Let SDK handle retries, log warnings for data issues
+2. **Large Responses**: Use pagination, don't load entire dataset into memory
+3. **Schema Mismatches**: Validate data matches schema, handle null values
+4. **State Management**: Don't modify state directly, use SDK methods
+5. **Timezone Handling**: Use UTC, parse ISO 8601 datetime strings
+6. **Error Handling**: Let SDK handle retries, log warnings for data issues
 
 ### SDK Resources
 
@@ -355,12 +353,12 @@ Use `secret=True` in the schema for credentials; document them as sensitive in `
 ### Best Practices
 
 1. **Logging**: Use `self.logger` for structured logging
-1. **Validation**: Validate API responses before emitting records
-1. **Documentation**: Update README with new streams and config options
-1. **Type Hints**: Add type hints to improve code clarity
-1. **Testing**: Write tests for new streams and edge cases
-1. **Performance**: Profile slow streams, optimize API calls
-1. **Error Messages**: Provide clear, actionable error messages
+2. **Validation**: Validate API responses before emitting records
+3. **Documentation**: Update README with new streams and config options
+4. **Type Hints**: Add type hints to improve code clarity
+5. **Testing**: Write tests for new streams and edge cases
+6. **Performance**: Profile slow streams, optimize API calls
+7. **Error Messages**: Provide clear, actionable error messages
 
 ## File Structure
 
@@ -391,11 +389,11 @@ Use `secret=True` in the schema for credentials; document them as sensitive in `
 When implementing changes:
 
 1. Understand the existing code structure
-1. Follow Singer and SDK patterns
-1. Test thoroughly with real API credentials
-1. Update documentation and docstrings
-1. Ensure backward compatibility when possible
-1. Run linting and type checking
+2. Follow Singer and SDK patterns
+3. Test thoroughly with real API credentials
+4. Update documentation and docstrings
+5. Ensure backward compatibility when possible
+6. Run linting and type checking
 
 ## Questions?
 
@@ -415,7 +413,7 @@ When upgrading the `hotglue-singer-sdk` dependency in `pyproject.toml`, follow t
 
    The deprecation page lists APIs scheduled for removal in each release, along with migration instructions. Review the entries for every version between your current version and the target version.
 
-1. **Update the dependency** in `pyproject.toml`:
+2. **Update the dependency** in `pyproject.toml`:
 
    ```toml
    [project]
@@ -424,7 +422,7 @@ When upgrading the `hotglue-singer-sdk` dependency in `pyproject.toml`, follow t
    ]
    ```
 
-1. **Reinstall in your virtualenv** and run the full test suite:
+3. **Reinstall in your virtualenv** and run the full test suite:
 
    ```bash
    pip install -e .
@@ -432,13 +430,13 @@ When upgrading the `hotglue-singer-sdk` dependency in `pyproject.toml`, follow t
    pytest
    ```
 
-1. **Address deprecation warnings**: Run with warnings enabled to catch anything that will become an error in a future release:
+4. **Address deprecation warnings**: Run with warnings enabled to catch anything that will become an error in a future release:
 
    ```bash
    pytest -W error::DeprecationWarning
    ```
 
-1. **Check the changelog** for any behavioral changes that affect your tap, even if not surfaced by warnings (e.g. pagination, authentication, state handling).
+5. **Check the changelog** for any behavioral changes that affect your tap, even if not surfaced by warnings (e.g. pagination, authentication, state handling).
 
 ## Reporting SDK Issues
 

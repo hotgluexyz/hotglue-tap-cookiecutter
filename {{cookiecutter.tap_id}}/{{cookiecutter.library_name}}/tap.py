@@ -1,46 +1,44 @@
 """{{ cookiecutter.source_name }} tap class."""
 
 from __future__ import annotations
+{%- if cookiecutter.auth_method == "OAuth2" %}
 
-from hotglue_singer_sdk import Tap, Stream
+from typing import Any
+{%- endif %}
+{#- Build the list of stream class names once, sorted alphabetically (isort-friendly). -#}
+{%- set classes = namespace(items=[]) -%}
+{%- for raw in cookiecutter.stream_names.split(",") -%}
+{%- set snake = raw | trim | lower | replace(" ", "_") | replace("-", "_") | replace("__", "_") | replace("__", "_") -%}
+{%- if snake -%}
+{%- set ns = namespace(parts="") -%}
+{%- for part in snake.split("_") -%}
+{%- if part -%}
+{%- set ns.parts = ns.parts ~ (part | capitalize) -%}
+{%- endif -%}
+{%- endfor -%}
+{%- set _ = classes.items.append(ns.parts ~ "Stream") -%}
+{%- endif -%}
+{%- endfor %}
+
+from hotglue_singer_sdk import Stream, Tap
 from hotglue_singer_sdk import typing as th  # JSON schema typing helpers
-
 {%- if cookiecutter.auth_method == "OAuth2" %}
 from hotglue_singer_sdk.authenticators import OAuthAuthenticator
-from {{ cookiecutter.library_name }}.auth import {{ cookiecutter.source_name }}Authenticator
 {%- endif %}
-
 from typing_extensions import override
 
+{% if cookiecutter.auth_method == "OAuth2" -%}
+from {{ cookiecutter.library_name }}.auth import {{ cookiecutter.source_name }}Authenticator
+{% endif -%}
 from {{ cookiecutter.library_name }}.streams import (
-{%- for raw in cookiecutter.stream_names.split(",") %}
-{%- set snake = raw | trim | lower | replace(" ", "_") | replace("-", "_") | replace("__", "_") | replace("__", "_") | replace("__", "_") %}
-{%- if snake %}
-{%- set ns = namespace(parts="") %}
-{%- for part in snake.split("_") %}
-{%- if part %}
-{%- set ns.parts = ns.parts ~ (part | capitalize) %}
-{%- endif %}
-{%- endfor %}
-{%- set class_name = ns.parts ~ "Stream" %}
+{%- for class_name in classes.items | sort %}
     {{ class_name }},
-{%- endif %}
 {%- endfor %}
 )
 
 STREAM_TYPES = [
-{%- for raw in cookiecutter.stream_names.split(",") %}
-{%- set snake = raw | trim | lower | replace(" ", "_") | replace("-", "_") | replace("__", "_") | replace("__", "_") | replace("__", "_") %}
-{%- if snake %}
-{%- set ns = namespace(parts="") %}
-{%- for part in snake.split("_") %}
-{%- if part %}
-{%- set ns.parts = ns.parts ~ (part | capitalize) %}
-{%- endif %}
-{%- endfor %}
-{%- set class_name = ns.parts ~ "Stream" %}
+{%- for class_name in classes.items | sort %}
     {{ class_name }},
-{%- endif %}
 {%- endfor %}
 ]
 
@@ -56,7 +54,13 @@ class Tap{{ cookiecutter.source_name }}(Tap):
             "start_date",
             th.DateTimeType,
             description="The earliest record date to sync",
-            default="2000-01-01T00:00:00Z"
+            default="2000-01-01T00:00:00Z",
+        ),
+        th.Property(
+            "api_url",
+            th.StringType,
+            description="Base URL for the {{ cookiecutter.source_name }} API",
+            default="{{ cookiecutter.api_base_url }}",
         ),
     {%- if cookiecutter.auth_method in ("OAuth2", "JWT") %}
         th.Property(
@@ -74,7 +78,6 @@ class Tap{{ cookiecutter.source_name }}(Tap):
         th.Property(
             "refresh_token",
             th.StringType,
-            title="Refresh Token",
             description="OAuth refresh token for the {{ cookiecutter.source_name }} OAuth app",
         ),
     {%- elif cookiecutter.auth_method == "Basic Auth" %}
@@ -105,13 +108,18 @@ class Tap{{ cookiecutter.source_name }}(Tap):
         """Return a list of discovered streams."""
         return [stream_class(tap=self) for stream_class in STREAM_TYPES]
 {% if cookiecutter.auth_method == "OAuth2" %}
-    def access_token_support(self) -> tuple[type[OAuthAuthenticator], str]:
-        """Return the access token support for the {{ cookiecutter.source_name }} API.
+    @classmethod
+    def access_token_support(
+        cls,
+        connector: Any = None,
+    ) -> tuple[type[OAuthAuthenticator], str]:
+        """Return the authenticator class and OAuth token endpoint.
 
         Returns:
-            A tuple with the access token support class and the auth endpoint.
+            A tuple with the authenticator class and the OAuth token endpoint URL.
         """
-        return {{ cookiecutter.source_name }}Authenticator, "https://api.mysample.com/oauth/token"
+        # TODO: replace with the real OAuth token endpoint for your vendor.
+        return {{ cookiecutter.source_name }}Authenticator, "{{ cookiecutter.api_base_url }}/oauth/token"
 {% endif %}
 
 if __name__ == "__main__":

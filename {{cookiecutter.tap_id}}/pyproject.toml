@@ -19,10 +19,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
 ]
 {%- if cookiecutter.license != "None" %}
 license = "{{cookiecutter.license}}"
@@ -97,23 +93,6 @@ testpaths = [
     "tests",
 ]
 
-[tool.ruff]
-line-length = 100
-required-version = ">=0.15"
-
-[tool.ruff.lint]
-future-annotations = true
-ignore = [
-    "COM812",  # missing-trailing-comma
-]
-select = ["ALL"]
-
-[tool.ruff.lint.flake8-annotations]
-allow-star-arg-any = true
-
-[tool.ruff.lint.pydocstyle]
-convention = "google"
-
 # This configuration can be used to customize tox environments
 [tool.tox]
 requires = [
@@ -121,20 +100,29 @@ requires = [
     "tox-uv",
 ]
 env_list = [
+    "lint",
     "typing",
-    { product = [
-        { prefix = "3.", start = 10 },
-    ] },
+    "3.10",
 ]
 
 [tool.tox.env_run_base]
 description = "run tests on Python {env_name}"
-runner = "uv-venv-lock-runner"
+runner = "uv-venv-runner"
 pass_env = [
     "{{cookiecutter.tap_id.replace('-', '_').upper()}}_*",
 ]
 dependency_groups = [ "test" ]
 commands = [ [ "pytest", { replace = "posargs", default = [ "tests" ], extend = true } ] ]
+
+[tool.tox.env.lint]
+description = "run ruff linter and formatter check"
+skip_install = true
+dependency_groups = []
+deps = ["ruff>=0.15"]
+commands = [
+    ["ruff", "check", "."],
+    ["ruff", "format", "--check", "."],
+]
 
 [tool.tox.env.typing]
 description = "type checks"

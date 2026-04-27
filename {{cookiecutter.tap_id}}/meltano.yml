@@ -46,9 +46,9 @@ plugins:
       sensitive: true
 
     {%- else %}
-    - name: auth_token
-      label: Auth Token
-      description: The token to authenticate against {{ cookiecutter.source_name }}
+    - name: api_key
+      label: API Key
+      description: The API key to authenticate against {{ cookiecutter.source_name }}
       sensitive: true
 
     {%- endif %}
@@ -58,6 +58,10 @@ plugins:
       label: Start Date
       description: Initial date to start extracting data from
 
+    - name: api_url
+      label: API URL
+      description: Base URL for the {{ cookiecutter.source_name }} API
+
     # TODO: Declare required settings here:
     settings_group_validation:
     {%- if cookiecutter.auth_method in ("OAuth2", "JWT") %}
@@ -65,12 +69,13 @@ plugins:
     {%- elif cookiecutter.auth_method == "Basic Auth" %}
     - [username, password]
     {%- else %}
-    - [auth_token]
+    - [api_key]
     {%- endif %}
 
     # TODO: Declare default configuration values here:
     config:
       start_date: 6 months ago
+      api_url: {{ cookiecutter.api_base_url }}
 
   loaders:
   - name: target-jsonl

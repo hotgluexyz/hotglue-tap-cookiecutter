@@ -1,0 +1,12 @@
+{
+{%- if cookiecutter.auth_method in ("OAuth2", "JWT") %}
+    "client_id": "YOUR_CLIENT_ID",
+    "client_secret": "YOUR_CLIENT_SECRET",
+{%- elif cookiecutter.auth_method == "Basic Auth" %}
+    "username": "YOUR_USERNAME",
+    "password": "YOUR_PASSWORD",
+{%- else %}
+    "api_key": "YOUR_API_KEY",
+{%- endif %}
+    "start_date": "2000-01-01T00:00:00Z"
+}

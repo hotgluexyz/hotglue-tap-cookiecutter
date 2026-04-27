@@ -5,40 +5,25 @@ from __future__ import annotations
 {% if cookiecutter.auth_method in ("OAuth2", "JWT") -%}
 from functools import cached_property
 {% endif -%}
-from typing import Any, Optional
+from typing import Any
 
-{% if cookiecutter.auth_method  == "API Key" -%}
-from hotglue_singer_sdk.authenticators import APIKeyAuthenticator
-from hotglue_singer_sdk.helpers.jsonpath import extract_jsonpath
-from hotglue_singer_sdk.streams import {{ cookiecutter.stream_type }}Stream
-
-
-{% elif cookiecutter.auth_method  == "Bearer Token" -%}
-from hotglue_singer_sdk.authenticators import BearerTokenAuthenticator
-from hotglue_singer_sdk.helpers.jsonpath import extract_jsonpath
-from hotglue_singer_sdk.streams import {{ cookiecutter.stream_type }}Stream
-
-
-{% elif cookiecutter.auth_method == "Basic Auth" -%}
-from requests.auth import HTTPBasicAuth
-from hotglue_singer_sdk.helpers.jsonpath import extract_jsonpath
-from hotglue_singer_sdk.streams import {{ cookiecutter.stream_type }}Stream
-
-
-{% elif cookiecutter.auth_method == "Custom or N/A" -%}
-from hotglue_singer_sdk.helpers.jsonpath import extract_jsonpath
-from hotglue_singer_sdk.streams import {{ cookiecutter.stream_type }}Stream
-
-{% elif cookiecutter.auth_method in ("OAuth2", "JWT") -%}
-from hotglue_singer_sdk.helpers.jsonpath import extract_jsonpath
-from hotglue_singer_sdk.streams import {{ cookiecutter.stream_type }}Stream
-{% endif -%}
-
-
-from typing_extensions import override
 import requests
-{%- if cookiecutter.auth_method in ("OAuth2", "JWT") %}
-from hotglue_singer_sdk.helpers.types import Auth
+{% if cookiecutter.auth_method == "API Key" -%}
+from hotglue_singer_sdk.authenticators import APIKeyAuthenticator
+{% elif cookiecutter.auth_method == "Bearer Token" -%}
+from hotglue_singer_sdk.authenticators import BearerTokenAuthenticator
+{% elif cookiecutter.auth_method in ("OAuth2", "JWT") -%}
+from hotglue_singer_sdk.authenticators import APIAuthenticatorBase
+{% endif -%}
+from hotglue_singer_sdk.helpers.jsonpath import extract_jsonpath
+from hotglue_singer_sdk.streams import {{ cookiecutter.stream_type }}Stream
+{% if cookiecutter.auth_method == "Basic Auth" -%}
+from requests.auth import HTTPBasicAuth
+{% endif -%}
+from typing_extensions import override
+{%- if cookiecutter.auth_method == "JWT" %}
+
+from {{ cookiecutter.library_name }}.auth import {{ cookiecutter.source_name }}Authenticator
 {%- endif %}
 
 
@@ -48,21 +33,23 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
     # Update this value if necessary or override `parse_response`.
     records_jsonpath = "$[*]"
 
-    # Update this value if necessary or override `get_new_paginator`.
-    next_page_token_jsonpath = "$.next_page"  # noqa: S105
+    # TODO: set to the jsonpath of the next-page token in your API's response, or
+    # set to None if pagination uses headers / a different mechanism.
+    next_page_token_jsonpath = "$.next_page"
 
     @override
     @property
     def url_base(self) -> str:
-        """Return the API URL root, configurable via tap settings."""
-        # TODO: hardcode a value here, or retrieve it from self.config
-        return "https://api.mysample.com"
+        """Return the API URL root, configurable via the ``api_url`` tap setting."""
+        # TODO: You can make the base URL dynamic here — for example, return different API URIs
+        # based on flags such as sandbox, country/region, or other environment cues.
+        return self.config.get("api_url", "{{ cookiecutter.api_base_url }}")
 
 {%- if cookiecutter.auth_method == "OAuth2" %}
 
     @override
     @cached_property
-    def authenticator(self) -> Auth:
+    def authenticator(self) -> APIAuthenticatorBase:
         """Return a new authenticator object.
 
         Returns:
@@ -75,7 +62,7 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
 
     @override
     @cached_property
-    def authenticator(self) -> Auth:
+    def authenticator(self) -> APIAuthenticatorBase:
         """Return a new authenticator object.
 
         Returns:
@@ -93,7 +80,9 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
         Returns:
             An authenticator instance.
         """
+        # TODO: verify the header name matches your API.
         return APIKeyAuthenticator(
+            stream=self,
             key="x-api-key",
             value=self.config["api_key"],
             location="header",
@@ -146,7 +135,7 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
         self,
         response: requests.Response,
         previous_token: Any | None,
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """Return token identifying next page or None if all records have been read.
 
         Args:
@@ -160,9 +149,7 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
             https://requests.readthedocs.io/en/latest/api/#requests.Response
         """
         if self.next_page_token_jsonpath:
-            all_matches = extract_jsonpath(
-                self.next_page_token_jsonpath, response.json()
-            )
+            all_matches = extract_jsonpath(self.next_page_token_jsonpath, response.json())
             first_match = next(iter(all_matches), None)
             next_page_token = first_match
         else:
@@ -173,7 +160,7 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
     @override
     def get_url_params(
         self,
-        context: Optional[dict],
+        context: dict | None,
         next_page_token: Any | None,
     ) -> dict[str, Any]:
         """Return a dictionary of values to be used in URL parameterization.
@@ -185,6 +172,7 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
         Returns:
             A dictionary of URL query parameters.
         """
+        # TODO: replace with your API's actual query params (pagination token, date filters, etc.).
         params: dict = {}
         if next_page_token:
             params["page"] = next_page_token
@@ -196,7 +184,7 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
     @override
     def prepare_request_payload(
         self,
-        context: Optional[dict],
+        context: dict | None,
         next_page_token: Any | None,
     ) -> dict | None:
         """Prepare the data payload for the REST API request.
@@ -217,7 +205,7 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
     def post_process(
         self,
         row: dict,
-        context: Optional[dict] = None,
+        context: dict | None = None,
     ) -> dict | None:
         """As needed, append or transform raw data to match expected structure.
 

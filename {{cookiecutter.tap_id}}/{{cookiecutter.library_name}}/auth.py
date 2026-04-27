@@ -1,13 +1,7 @@
 """{{ cookiecutter.source_name }} Authentication."""
 
 from __future__ import annotations
-
-{%- if cookiecutter.auth_method not in ("Basic Auth", "OAuth2", "JWT") %}
-
-# TODO: Delete this file or add custom authentication logic as needed.
-
-{%- elif cookiecutter.auth_method == "OAuth2" %}
-
+{%- if cookiecutter.auth_method == "OAuth2" %}
 
 from hotglue_singer_sdk.authenticators import OAuthAuthenticator, SingletonMeta
 from typing_extensions import override
@@ -41,4 +35,8 @@ from hotglue_singer_sdk.authenticators import OAuthJWTAuthenticator
 
 class {{ cookiecutter.source_name }}Authenticator(OAuthJWTAuthenticator):
     """Authenticator class for {{ cookiecutter.source_name }}."""
+{%- else %}
+
+
+# TODO: Delete this file or add custom authentication logic as needed.
 {%- endif %}

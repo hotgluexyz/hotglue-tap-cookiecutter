@@ -23,7 +23,7 @@ A [Singer](https://www.singer.io/) tap that extracts data from **{{ cookiecutter
 {% else %}
 - **Custom / N/A** authentication — finish wiring in `client.py` as needed.
 {% endif %}
-- Configurable **`api_url`**, **`project_ids`**, and optional **`start_date`**.
+- Configurable **`api_url`** and optional **`start_date`** (see [Configuration](#configuration)).
 - Incremental sync is scaffolded with placeholder **`id`** (primary key) and **`modified_at`** (replication key); replace with real fields per stream in `streams.py`.
 
 ### Streams
@@ -73,6 +73,7 @@ pip install -e .
 | Setting | Type | Required | Default | Description |
 | ------- | ---- | -------- | ------- | ----------- |
 | `start_date` | string (datetime) | no | `2000-01-01T00:00:00Z` | Earliest record date to sync. |
+| `api_url` | string | no | `{{ cookiecutter.api_base_url }}` | Base URL for the API. |
 {%- if cookiecutter.auth_method in ("OAuth2", "JWT") %}
 | `client_id` | string | yes | — | OAuth client ID. |
 | `client_secret` | string | yes | — | OAuth client secret. |
@@ -83,8 +84,6 @@ pip install -e .
 {%- else %}
 | `api_key` | string | yes | — | API credential (adjust name/location in code if your API differs). |
 {%- endif %}
-| `project_ids` | array of strings | yes | — | Project IDs to replicate (template placeholder; rename or remove if not used). |
-| `api_url` | string | yes | `https://api.mysample.com` | Base URL for the API. |
 
 Run `{{ cookiecutter.tap_id }} --about` (or `{{ cookiecutter.tap_id }} --about --format=markdown`) for the authoritative schema for your installed version.
 
@@ -93,18 +92,17 @@ Run `{{ cookiecutter.tap_id }} --about` (or `{{ cookiecutter.tap_id }} --about -
 ```json
 {
   "start_date": "2000-01-01T00:00:00Z",
+  "api_url": "{{ cookiecutter.api_base_url }}",
 {%- if cookiecutter.auth_method in ("OAuth2", "JWT") %}
   "client_id": "YOUR_CLIENT_ID",
   "client_secret": "YOUR_CLIENT_SECRET",
-  "refresh_token": "",
+  "refresh_token": ""
 {%- elif cookiecutter.auth_method == "Basic Auth" %}
   "username": "YOUR_USERNAME",
-  "password": "YOUR_PASSWORD",
+  "password": "YOUR_PASSWORD"
 {%- else %}
-  "api_key": "YOUR_API_KEY",
+  "api_key": "YOUR_API_KEY"
 {%- endif %}
-  "project_ids": ["project1", "project2"],
-  "api_url": "https://api.mysample.com"
 }
 ```
 
