@@ -16,7 +16,7 @@ SAMPLE_CONFIG = {
     "username": "placeholder",
     "password": "placeholder",
 {%- else %}
-    "api_key": "placeholder",
+    "access_key": "placeholder",
 {%- endif %}
 }
 

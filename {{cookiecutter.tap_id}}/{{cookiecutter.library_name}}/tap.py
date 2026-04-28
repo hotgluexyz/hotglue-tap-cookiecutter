@@ -95,10 +95,10 @@ class Tap{{ cookiecutter.source_name }}(Tap):
         ),
     {%- else %}
         th.Property(
-            "api_key",
+            "access_key",
             th.StringType,
             required=True,
-            description="The API key to authenticate against {{ cookiecutter.source_name }}",
+            description="The access key to authenticate against {{ cookiecutter.source_name }}",
         ),
     {%- endif %}
     ).to_dict()

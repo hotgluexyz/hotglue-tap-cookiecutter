@@ -84,7 +84,7 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
         return APIKeyAuthenticator(
             stream=self,
             key="x-api-key",
-            value=self.config["api_key"],
+            value=self.config["access_key"],
             location="header",
         )
 
@@ -98,7 +98,7 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
         Returns:
             An authenticator instance.
         """
-        return BearerTokenAuthenticator(stream=self, token=self.config["api_key"])
+        return BearerTokenAuthenticator(stream=self, token=self.config["access_key"])
 
 {%- elif cookiecutter.auth_method == "Basic Auth" %}
 
@@ -127,7 +127,7 @@ class {{ cookiecutter.source_name }}Stream({{ cookiecutter.stream_type }}Stream)
         """
 {%- if cookiecutter.auth_method not in ("OAuth2", "JWT") %}
         # If not using an authenticator, you may also provide inline auth headers:
-        # headers["Private-Token"] = self.config.get("api_key")
+        # headers["Private-Token"] = self.config.get("access_key")
 {%- endif %}
         return {}
 

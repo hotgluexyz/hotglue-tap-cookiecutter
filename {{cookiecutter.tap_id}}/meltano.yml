@@ -46,9 +46,9 @@ plugins:
       sensitive: true
 
     {%- else %}
-    - name: api_key
-      label: API Key
-      description: The API key to authenticate against {{ cookiecutter.source_name }}
+    - name: access_key
+      label: Access Key
+      description: The access key to authenticate against {{ cookiecutter.source_name }}
       sensitive: true
 
     {%- endif %}
@@ -69,7 +69,7 @@ plugins:
     {%- elif cookiecutter.auth_method == "Basic Auth" %}
     - [username, password]
     {%- else %}
-    - [api_key]
+    - [access_key]
     {%- endif %}
 
     # TODO: Declare default configuration values here:

@@ -82,7 +82,7 @@ pip install -e .
 | `username` | string | yes | — | Account username. |
 | `password` | string | yes | — | Account password. |
 {%- else %}
-| `api_key` | string | yes | — | API credential (adjust name/location in code if your API differs). |
+| `access_key` | string | yes | — | API credential (adjust name/location in code if your API differs). |
 {%- endif %}
 
 Run `{{ cookiecutter.tap_id }} --about` (or `{{ cookiecutter.tap_id }} --about --format=markdown`) for the authoritative schema for your installed version.
@@ -101,7 +101,7 @@ Run `{{ cookiecutter.tap_id }} --about` (or `{{ cookiecutter.tap_id }} --about -
   "username": "YOUR_USERNAME",
   "password": "YOUR_PASSWORD"
 {%- else %}
-  "api_key": "YOUR_API_KEY"
+  "access_key": "YOUR_ACCESS_KEY"
 {%- endif %}
 }
 ```

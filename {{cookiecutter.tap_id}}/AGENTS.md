@@ -119,7 +119,7 @@ The agent should align **`name`**, **`path`** (or **`query`** for GraphQL), **`s
 - API key should be passed via headers or query parameters
 - Configuration defined in `tap.py` config schema
 {%- elif cookiecutter.auth_method == 'Bearer Token' -%}
-- Token read from the **`api_key`** config property (see `tap.py` / `README.md`; rename in schema and client if your API uses a different setting name)
+- Token read from the **`access_key`** config property (see `tap.py` / `README.md`; rename in schema and client if your API uses a different setting name)
 - Passed via **`BearerTokenAuthenticator`** in **`client.py`** (`Authorization: Bearer …`)
 {%- elif cookiecutter.auth_method == 'Basic Auth' -%}
 - Username/password in config
@@ -256,7 +256,7 @@ from hotglue_singer_sdk import typing as th
 
 config_jsonschema = th.PropertiesList(
     th.Property("api_url", th.StringType, required=True),
-    th.Property("api_key", th.StringType, required=True),
+    th.Property("access_key", th.StringType, required=True),
     th.Property("start_date", th.DateTimeType),
 ).to_dict()
 ```
@@ -292,7 +292,7 @@ Example — adding a new `batch_size` setting:
 # {{ cookiecutter.library_name }}/tap.py
 config_jsonschema = th.PropertiesList(
     th.Property("api_url", th.StringType, required=True),
-    th.Property("api_key", th.StringType, required=True),
+    th.Property("access_key", th.StringType, required=True),
     th.Property("batch_size", th.IntegerType, default=100),  # New setting
 ).to_dict()
 ```
@@ -302,7 +302,7 @@ Example snippet for `README.md`’s **Example `config.json`** section:
 ```json
 {
   "api_url": "https://api.example.com",
-  "api_key": "YOUR_API_KEY",
+  "access_key": "YOUR_ACCESS_KEY",
   "batch_size": 100
 }
 ```
@@ -310,7 +310,7 @@ Example snippet for `README.md`’s **Example `config.json`** section:
 ```bash
 # .env.example (prefix matches this tap’s env mapping; see --about)
 {{ cookiecutter.tap_id.upper().replace('-', '_') }}_API_URL=https://api.example.com
-{{ cookiecutter.tap_id.upper().replace('-', '_') }}_API_KEY=your_api_key_here
+{{ cookiecutter.tap_id.upper().replace('-', '_') }}_ACCESS_KEY=your_access_key_here
 {{ cookiecutter.tap_id.upper().replace('-', '_') }}_BATCH_SIZE=100
 ```
 
