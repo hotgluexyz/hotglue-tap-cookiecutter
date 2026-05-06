@@ -1,22 +1,38 @@
 """Tests standard tap features using the built-in SDK tests library."""
 
 import datetime
-
-from hotglue_singer_sdk.testing import get_tap_test_class
+import pytest
+from hotglue_singer_sdk.testing import get_standard_tap_tests
 
 from {{ cookiecutter.library_name }}.tap import Tap{{ cookiecutter.source_name }}
 
 SAMPLE_CONFIG = {
     "start_date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d"),
     # TODO: Initialize minimal tap config
+{%- if cookiecutter.auth_method in ("OAuth2", "JWT") %}
+    "client_id": "placeholder",
+    "client_secret": "placeholder",
+{%- elif cookiecutter.auth_method == "Basic Auth" %}
+    "username": "placeholder",
+    "password": "placeholder",
+{%- else %}
+    "access_key": "placeholder",
+{%- endif %}
 }
 
+# _test_stream_connections makes live HTTP calls; excluded by default.
+# Replace SAMPLE_CONFIG placeholders with real credentials and call it directly.
+_STANDARD_TESTS = [
+    t
+    for t in get_standard_tap_tests(Tap{{ cookiecutter.source_name }}, config=SAMPLE_CONFIG)
+    if getattr(t, "__name__", "") != "_test_stream_connections"
+]
 
-# Run standard built-in tap tests from the SDK:
-TestTap{{ cookiecutter.source_name }} = get_tap_test_class(
-    tap_class=Tap{{ cookiecutter.source_name }},
-    config=SAMPLE_CONFIG,
-)
+
+@pytest.mark.parametrize("test_func", _STANDARD_TESTS)
+def test_standard(test_func):
+    """Run built-in SDK tap tests (CLI output and catalog discovery)."""
+    test_func()
 
 
 # TODO: Create additional tests as appropriate for your tap.

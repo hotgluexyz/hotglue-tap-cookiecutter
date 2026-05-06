@@ -5,6 +5,7 @@
   "library_name": "{{ cookiecutter.tap_id.replace('-', '_') }}",
   "stream_type": ["REST", "GraphQL", "Other"],
   "stream_names": "users,groups",
+  "api_base_url": "https://api.mysample.com",
   "auth_method": [
     "API Key",
     "Bearer Token",
@@ -22,6 +23,7 @@
     "library_name": "The name of the library, in snake_case (e.g., 'tap_mysource'). This is how the library will be imported in Python.",
     "stream_type": "The type of stream the source provides",
     "stream_names": "Comma-separated stream labels, e.g. [dim]users,User Groups,order-lines[/]. Each is normalized to [bold]snake_case[/] for Singer [code]name[/] and REST [code]path[/]; class names are PascalCase + [code]Stream[/]. Scaffold uses [bold]id[/] / [bold]modified_at[/] — fix via TODOs in [code]streams.py[/].",
+    "api_base_url": "The base URL of the API (e.g. [dim]https://api.example.com[/]). Used as [code]url_base[/] in [code]client.py[/]; press Enter to keep the placeholder and edit later.",
     "auth_method": "The [bold red]authentication[/] method used by the source, for REST and GraphQL sources",
     "include_agent_instructions": "Include an agent instructions file? AGENTS.md is the cross-tool standard; CLAUDE.md is specific to Claude Code.",
     "license": "The license for the project"

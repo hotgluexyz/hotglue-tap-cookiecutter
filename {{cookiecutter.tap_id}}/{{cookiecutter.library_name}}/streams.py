@@ -24,7 +24,7 @@ class {{ class_name }}({{ cookiecutter.source_name }}Stream):
     """Stream for ``{{ snake }}``."""
 
     name = "{{ snake }}"
-    # TODO: Replace `id` ` with your actual primary keys.
+    # TODO: Replace `id` with your actual primary keys.
     primary_keys = ["id"]
     # TODO: Replace with your actual replication key, or set to None if not incremental.
     replication_key = "modified_at"
